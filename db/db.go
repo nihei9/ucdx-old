@@ -98,3 +98,54 @@ func parseDataFile(dirPath string, dataFileName string) error {
 	jsonFileName := fmt.Sprintf("%v.json", strings.TrimSuffix(dataFileName, ".txt"))
 	return ioutil.WriteFile(filepath.Join(dirPath, jsonFileName), jsonData, 0644)
 }
+
+func OpenDB(appDirPath string) (*ucd.UCD, error) {
+	var ud *parser.UnicodeData
+	{
+		d, err := os.ReadFile(makeParsedDataFilePath(appDirPath, ucd.TxtUnicodeData))
+		if err != nil {
+			return nil, err
+		}
+		ud = &parser.UnicodeData{}
+		err = json.Unmarshal(d, ud)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var propValAliases *parser.PropertyValueAliases
+	{
+		d, err := os.ReadFile(makeParsedDataFilePath(appDirPath, ucd.TxtPropertyValueAliases))
+		if err != nil {
+			return nil, err
+		}
+		propValAliases = &parser.PropertyValueAliases{}
+		err = json.Unmarshal(d, propValAliases)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var propList *parser.PropList
+	{
+		d, err := os.ReadFile(makeParsedDataFilePath(appDirPath, ucd.TxtPropList))
+		if err != nil {
+			return nil, err
+		}
+		propList = &parser.PropList{}
+		err = json.Unmarshal(d, propValAliases)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &ucd.UCD{
+		UnicodeData:          ud,
+		PropertyValueAliases: propValAliases,
+		PropList:             propList,
+	}, nil
+}
+
+func makeParsedDataFilePath(appDirPath string, srcDataFileName string) string {
+	return filepath.Join(appDirPath, "db", fmt.Sprintf("%v.json", strings.TrimSuffix(srcDataFileName, ".txt")))
+}
