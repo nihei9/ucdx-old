@@ -20,6 +20,7 @@ type DBConfig struct {
 func MakeDB(config *DBConfig) error {
 	dataFileNames := []string{
 		ucd.TxtUnicodeData,
+		ucd.TxtPropertyValueAliases,
 	}
 
 	tempDirPath, err := os.MkdirTemp(config.AppDirPath, "db-*")
@@ -79,6 +80,8 @@ func parseDataFile(dirPath string, dataFileName string) error {
 	switch dataFileName {
 	case ucd.TxtUnicodeData:
 		data, err = parser.ParseUnicodeData(f)
+	case ucd.TxtPropertyValueAliases:
+		data, err = parser.ParsePropertyValueAliases(f)
 	default:
 		return fmt.Errorf("unknown data file name: %v", dataFileName)
 	}

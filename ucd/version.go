@@ -5,7 +5,8 @@ import "fmt"
 const UnicodeVersion = "13.0.0"
 
 const (
-	TxtUnicodeData = "UnicodeData.txt"
+	TxtUnicodeData          = "UnicodeData.txt"
+	TxtPropertyValueAliases = "PropertyValueAliases.txt"
 )
 
 func MakeDataFileURL(dataFileName string) string {
