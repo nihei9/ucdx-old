@@ -60,7 +60,6 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 		}
 
 		props := u.AnalizeCodePoint(c)
-		ps := props.Base.Properties
 
 		fmt.Println(string(c), fmt.Sprintf("U+%X", c))
 		var opts []string
@@ -74,11 +73,14 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 				fmt.Sprintf("(%v)", gs.String()),
 			}
 		}
-		printProperty(ps[ucd.PropNameGeneralCategory], opts...)
-		printProperty(ps[ucd.PropNameOtherAlphabetic])
-		printProperty(ps[ucd.PropNameOtherLowercase])
-		printProperty(ps[ucd.PropNameOtherUppercase])
-		printProperty(ps[ucd.PropNameWhiteSpace])
+		printProperty(props.Lookup(ucd.PropNameGeneralCategory), opts...)
+		printProperty(props.Lookup(ucd.PropNameAlphabetic))
+		printProperty(props.Lookup(ucd.PropNameLowercase))
+		printProperty(props.Lookup(ucd.PropNameUppercase))
+		printProperty(props.Lookup(ucd.PropNameOtherAlphabetic))
+		printProperty(props.Lookup(ucd.PropNameOtherLowercase))
+		printProperty(props.Lookup(ucd.PropNameOtherUppercase))
+		printProperty(props.Lookup(ucd.PropNameWhiteSpace))
 	}
 }
 

@@ -1,6 +1,10 @@
 package ucd
 
-import "github.com/nihei9/ucdx/ucd/parser"
+import (
+	"fmt"
+
+	"github.com/nihei9/ucdx/ucd/parser"
+)
 
 type PropertyName string
 
@@ -10,9 +14,55 @@ const (
 	PropNameOtherLowercase  PropertyName = "Other_Lowercase"
 	PropNameOtherUppercase  PropertyName = "Other_Uppercase"
 	PropNameWhiteSpace      PropertyName = "White_Space"
+	PropNameAlphabetic      PropertyName = "Alphabetic"
+	PropNameLowercase       PropertyName = "Lowercase"
+	PropNameUppercase       PropertyName = "Uppercase"
 )
 
-type PropertyValue interface{}
+type PropertyValue interface {
+	fmt.Stringer
+	equal(o PropertyValue) bool
+}
+
+type PropertyValueSymbol string
+
+func newSymbolPropertyValue(v string) PropertyValueSymbol {
+	return PropertyValueSymbol(v)
+}
+
+func (v PropertyValueSymbol) String() string {
+	return string(v)
+}
+
+func (v PropertyValueSymbol) equal(o PropertyValue) bool {
+	s, ok := o.(PropertyValueSymbol)
+	if !ok {
+		return false
+	}
+	return v == s
+}
+
+type PropertyValueBinary bool
+
+const (
+	BinaryYes PropertyValueBinary = true
+	BinaryNo  PropertyValueBinary = false
+)
+
+func (v PropertyValueBinary) String() string {
+	if v {
+		return "Yes"
+	}
+	return "No"
+}
+
+func (v PropertyValueBinary) equal(o PropertyValue) bool {
+	b, ok := o.(PropertyValueBinary)
+	if !ok {
+		return false
+	}
+	return v == b
+}
 
 type Property struct {
 	Name  PropertyName
@@ -26,13 +76,25 @@ func newProperty(name PropertyName, value PropertyValue) *Property {
 	}
 }
 
+func (p *Property) equal(o *Property) bool {
+	return p.Name == o.Name && p.Value.equal(o.Value)
+}
+
 type BaseProperties struct {
 	Properties map[PropertyName]*Property
 }
 
 type PropertySet struct {
 	Base                  *BaseProperties
-	GeneralCategoryGroups []string
+	GeneralCategoryGroups []PropertyValueSymbol
+	DerivedCore           *DerivedCoreProperties
+}
+
+func (s *PropertySet) Lookup(propName PropertyName) *Property {
+	if v, ok := s.Base.Properties[propName]; ok {
+		return v
+	}
+	return s.DerivedCore.Properies[propName]
 }
 
 type UCD struct {
@@ -55,57 +117,58 @@ func (u *UCD) AnalizeCodePoint(c rune) *PropertySet {
 	return &PropertySet{
 		Base:                  base,
 		GeneralCategoryGroups: lookupGCGroups(gc),
+		DerivedCore:           calcDerivedCoreProperties(base),
 	}
 }
 
-func (u *UCD) lookupGeneralCategory(c rune) string {
+func (u *UCD) lookupGeneralCategory(c rune) PropertyValueSymbol {
 	for gc, cps := range u.UnicodeData.GeneralCategory {
 		for _, cp := range cps {
 			from, to := cp.Range()
 			if c >= from && c <= to {
-				return gc
+				return newSymbolPropertyValue(gc)
 			}
 		}
 	}
-	return u.PropertyValueAliases.DefaultValues["General_Category"].Value
+	return newSymbolPropertyValue(u.PropertyValueAliases.DefaultValues["General_Category"].Value)
 }
 
-func (u *UCD) isOtherAlphabetic(c rune) bool {
+func (u *UCD) isOtherAlphabetic(c rune) PropertyValueBinary {
 	for _, cp := range u.PropList.OtherAlphabetic {
 		from, to := cp.Range()
 		if c >= from || c <= to {
-			return true
+			return BinaryYes
 		}
 	}
-	return false
+	return BinaryNo
 }
 
-func (u *UCD) isOtherLowercase(c rune) bool {
+func (u *UCD) isOtherLowercase(c rune) PropertyValueBinary {
 	for _, cp := range u.PropList.OtherLowercase {
 		from, to := cp.Range()
 		if c >= from || c <= to {
-			return true
+			return BinaryYes
 		}
 	}
-	return false
+	return BinaryNo
 }
 
-func (u *UCD) isOtherUppercase(c rune) bool {
+func (u *UCD) isOtherUppercase(c rune) PropertyValueBinary {
 	for _, cp := range u.PropList.OtherUppercase {
 		from, to := cp.Range()
 		if c >= from || c <= to {
-			return true
+			return BinaryYes
 		}
 	}
-	return false
+	return BinaryNo
 }
 
-func (u *UCD) isWhiteSpace(c rune) bool {
+func (u *UCD) isWhiteSpace(c rune) PropertyValueBinary {
 	for _, cp := range u.PropList.WhiteSpace {
 		from, to := cp.Range()
 		if c >= from || c <= to {
-			return true
+			return BinaryYes
 		}
 	}
-	return false
+	return BinaryNo
 }

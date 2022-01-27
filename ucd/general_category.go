@@ -3,7 +3,7 @@ package ucd
 import "sort"
 
 // See section 5.7.1 General Category Values in [UAX44].
-var generalCategoryGroups = map[string][]string{
+var generalCategoryGroups = map[PropertyValueSymbol][]PropertyValueSymbol{
 	// Cased_Letter
 	"lc": {"lu", "ll", "lt"},
 	// Letter
@@ -22,9 +22,9 @@ var generalCategoryGroups = map[string][]string{
 	"c": {"cc", "cf", "cs", "co", "cn"},
 }
 
-func lookupGCGroups(gc string) []string {
+func lookupGCGroups(gc PropertyValueSymbol) []PropertyValueSymbol {
 	// A General_Category may belong to one or more groups.
-	var groups []string
+	var groups []PropertyValueSymbol
 	for group, gcs := range generalCategoryGroups {
 		for _, g := range gcs {
 			if g == gc {
