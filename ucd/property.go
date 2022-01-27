@@ -135,8 +135,7 @@ func (u *UCD) lookupGeneralCategory(c rune) PropertyValueSymbol {
 
 func (u *UCD) isOtherAlphabetic(c rune) PropertyValueBinary {
 	for _, cp := range u.PropList.OtherAlphabetic {
-		from, to := cp.Range()
-		if c >= from || c <= to {
+		if cp.Contain(c) {
 			return BinaryYes
 		}
 	}
@@ -145,8 +144,7 @@ func (u *UCD) isOtherAlphabetic(c rune) PropertyValueBinary {
 
 func (u *UCD) isOtherLowercase(c rune) PropertyValueBinary {
 	for _, cp := range u.PropList.OtherLowercase {
-		from, to := cp.Range()
-		if c >= from || c <= to {
+		if cp.Contain(c) {
 			return BinaryYes
 		}
 	}
@@ -155,8 +153,7 @@ func (u *UCD) isOtherLowercase(c rune) PropertyValueBinary {
 
 func (u *UCD) isOtherUppercase(c rune) PropertyValueBinary {
 	for _, cp := range u.PropList.OtherUppercase {
-		from, to := cp.Range()
-		if c >= from || c <= to {
+		if cp.Contain(c) {
 			return BinaryYes
 		}
 	}
@@ -165,8 +162,7 @@ func (u *UCD) isOtherUppercase(c rune) PropertyValueBinary {
 
 func (u *UCD) isWhiteSpace(c rune) PropertyValueBinary {
 	for _, cp := range u.PropList.WhiteSpace {
-		from, to := cp.Range()
-		if c >= from || c <= to {
+		if cp.Contain(c) {
 			return BinaryYes
 		}
 	}

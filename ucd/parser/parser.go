@@ -104,6 +104,11 @@ func (r *CodePointRange) Rewrite(from, to rune) {
 	r[1] = to
 }
 
+func (r *CodePointRange) Contain(c rune) bool {
+	from, to := r.Range()
+	return c >= from && c <= to
+}
+
 type field string
 
 func (f field) String() string {

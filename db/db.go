@@ -133,7 +133,7 @@ func OpenDB(appDirPath string) (*ucd.UCD, error) {
 			return nil, err
 		}
 		propList = &parser.PropList{}
-		err = json.Unmarshal(d, propValAliases)
+		err = json.Unmarshal(d, propList)
 		if err != nil {
 			return nil, err
 		}
