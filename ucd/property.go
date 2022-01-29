@@ -11,6 +11,7 @@ type PropertyName string
 
 const (
 	PropNameName            PropertyName = "Name"
+	PropNameNameAlias       PropertyName = "Name_Alias"
 	PropNameGeneralCategory PropertyName = "General_Category"
 	PropNameOtherAlphabetic PropertyName = "Other_Alphabetic"
 	PropNameOtherLowercase  PropertyName = "Other_Lowercase"
@@ -42,6 +43,38 @@ func (v PropertyValueName) equal(o PropertyValue) bool {
 		return false
 	}
 	return v == s
+}
+
+type PropertyValueNameList []PropertyValueName
+
+func newNameListPropertyValue(v []PropertyValueName) PropertyValueNameList {
+	return PropertyValueNameList(v)
+}
+
+func (v PropertyValueNameList) String() string {
+	if len(v) == 0 {
+		return ""
+	}
+
+	var b strings.Builder
+	fmt.Fprint(&b, v[0].String())
+	for _, name := range v[1:] {
+		fmt.Fprintf(&b, ", %v", name)
+	}
+	return b.String()
+}
+
+func (v PropertyValueNameList) equal(o PropertyValue) bool {
+	l, ok := o.(PropertyValueNameList)
+	if !ok {
+		return false
+	}
+	for _, e := range l {
+		if !e.equal(v) {
+			return false
+		}
+	}
+	return true
 }
 
 type PropertyValueSymbol string
@@ -119,6 +152,7 @@ func (s *PropertySet) Lookup(propName PropertyName) *Property {
 
 type UCD struct {
 	UnicodeData          *parser.UnicodeData
+	NameAliases          *parser.NameAliases
 	PropertyValueAliases *parser.PropertyValueAliases
 	PropList             *parser.PropList
 }
@@ -128,6 +162,7 @@ func (u *UCD) AnalizeCodePoint(c rune) *PropertySet {
 	base := &BaseProperties{
 		Properties: map[PropertyName]*Property{
 			PropNameName:            newProperty(PropNameName, u.lookupName(c)),
+			PropNameNameAlias:       newProperty(PropNameNameAlias, u.lookupNameAlias(c)),
 			PropNameGeneralCategory: newProperty(PropNameGeneralCategory, gc),
 			PropNameOtherAlphabetic: newProperty(PropNameOtherAlphabetic, u.isOtherAlphabetic(c)),
 			PropNameOtherLowercase:  newProperty(PropNameOtherLowercase, u.isOtherLowercase(c)),
@@ -194,6 +229,19 @@ func (u *UCD) lookupName(c rune) PropertyValueName {
 		}
 	}
 	return newNamePropertyValue("")
+}
+
+func (u *UCD) lookupNameAlias(c rune) PropertyValueNameList {
+	for _, e := range u.NameAliases.Entries {
+		if e.CP == c {
+			as := make([]PropertyValueName, len(e.Aliases))
+			for i, alias := range e.Aliases {
+				as[i] = newNamePropertyValue(alias)
+			}
+			return newNameListPropertyValue(as)
+		}
+	}
+	return nil
 }
 
 func (u *UCD) lookupGeneralCategory(c rune) PropertyValueSymbol {
