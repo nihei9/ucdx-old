@@ -83,7 +83,7 @@ func parseFields(buf []field, src string) []field {
 
 type CodePointRange [2]rune
 
-func newCodePointRange(from, to rune) *CodePointRange {
+func NewCodePointRange(from, to rune) *CodePointRange {
 	cp := CodePointRange{}
 	cp[0] = from
 	cp[1] = to
@@ -97,11 +97,6 @@ func (r *CodePointRange) String() string {
 
 func (r *CodePointRange) Range() (rune, rune) {
 	return r[0], r[1]
-}
-
-func (r *CodePointRange) Rewrite(from, to rune) {
-	r[0] = from
-	r[1] = to
 }
 
 func (r *CodePointRange) Contain(c rune) bool {
@@ -132,7 +127,7 @@ func (f field) codePointRange() (*CodePointRange, error) {
 	} else {
 		to = from
 	}
-	return newCodePointRange(from, to), nil
+	return NewCodePointRange(from, to), nil
 }
 
 func decodeHexToRune(hexCodePoint string) (rune, error) {
@@ -150,6 +145,19 @@ func decodeHexToRune(hexCodePoint string) (rune, error) {
 	}
 	n := binary.BigEndian.Uint32(b)
 	return rune(n), nil
+}
+
+// name returns a value parsed as a `Name` property.
+//
+// See section 4.8 Name in [Unicode].
+// > Interpretation of Field 1 of UnicodeData.txt. Where Field 1 of UnicodeData.txt contains a string enclosed in
+// > angle brackets, “<” and “>”, such a string is not a character name, ...
+func (f field) name() (string, bool) {
+	s := string(f)
+	if strings.HasPrefix(s, "<") && strings.HasSuffix(s, ">") {
+		return "", false
+	}
+	return s, true
 }
 
 // symbol returns a symbolic value.

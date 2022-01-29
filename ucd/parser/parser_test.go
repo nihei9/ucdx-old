@@ -177,15 +177,15 @@ func TestField_codePointRange(t *testing.T) {
 	}{
 		{
 			field: "0",
-			cp:    newCodePointRange(0x0, 0x0),
+			cp:    NewCodePointRange(0x0, 0x0),
 		},
 		{
 			field: "10FFFF",
-			cp:    newCodePointRange(0x10FFFF, 0x10FFFF),
+			cp:    NewCodePointRange(0x10FFFF, 0x10FFFF),
 		},
 		{
 			field: "0..10FFFF",
-			cp:    newCodePointRange(0x0, 0x10FFFF),
+			cp:    NewCodePointRange(0x0, 0x10FFFF),
 		},
 	}
 	for _, tt := range tests {

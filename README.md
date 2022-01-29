@@ -6,6 +6,7 @@ UCD (Unicode Character Database) Utilities
 
 ucdx references [Unicode 13.0.0](https://unicode.org/versions/Unicode13.0.0/).
 
-# Reference
+# References
 
+* [[Unicode](https://www.unicode.org/versions/Unicode13.0.0/)] The Unicode Standard
 * [[UAX44](https://www.unicode.org/reports/tr44/tr44-26.html)] Unicode Standard Annex #44: Unicode Character Database

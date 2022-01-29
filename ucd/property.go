@@ -2,6 +2,7 @@ package ucd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/nihei9/ucdx/ucd/parser"
 )
@@ -9,6 +10,7 @@ import (
 type PropertyName string
 
 const (
+	PropNameName            PropertyName = "Name"
 	PropNameGeneralCategory PropertyName = "General_Category"
 	PropNameOtherAlphabetic PropertyName = "Other_Alphabetic"
 	PropNameOtherLowercase  PropertyName = "Other_Lowercase"
@@ -22,6 +24,24 @@ const (
 type PropertyValue interface {
 	fmt.Stringer
 	equal(o PropertyValue) bool
+}
+
+type PropertyValueName string
+
+func newNamePropertyValue(v string) PropertyValueName {
+	return PropertyValueName(v)
+}
+
+func (v PropertyValueName) String() string {
+	return string(v)
+}
+
+func (v PropertyValueName) equal(o PropertyValue) bool {
+	s, ok := o.(PropertyValueName)
+	if !ok {
+		return false
+	}
+	return v == s
 }
 
 type PropertyValueSymbol string
@@ -107,6 +127,7 @@ func (u *UCD) AnalizeCodePoint(c rune) *PropertySet {
 	gc := u.lookupGeneralCategory(c)
 	base := &BaseProperties{
 		Properties: map[PropertyName]*Property{
+			PropNameName:            newProperty(PropNameName, u.lookupName(c)),
 			PropNameGeneralCategory: newProperty(PropNameGeneralCategory, gc),
 			PropNameOtherAlphabetic: newProperty(PropNameOtherAlphabetic, u.isOtherAlphabetic(c)),
 			PropNameOtherLowercase:  newProperty(PropNameOtherLowercase, u.isOtherLowercase(c)),
@@ -121,11 +142,64 @@ func (u *UCD) AnalizeCodePoint(c rune) *PropertySet {
 	}
 }
 
+// 4.8 Table 4-8. Name Derivation Rule Prefix Strings in [Unicode].
+var namePrefixes = map[string][]*parser.CodePointRange{
+	"HANGUL SYLLABLE ": {
+		parser.NewCodePointRange(0xAC00, 0xD7A3),
+	},
+	"CJK UNIFIED IDEOGRAPH-": {
+		parser.NewCodePointRange(0x3400, 0x4DBF),
+		parser.NewCodePointRange(0x4E00, 0x9FFC),
+		parser.NewCodePointRange(0x20000, 0x2A6DD),
+		parser.NewCodePointRange(0x2A700, 0x2B734),
+		parser.NewCodePointRange(0x2B740, 0x2B81D),
+		parser.NewCodePointRange(0x2B820, 0x2CEA1),
+		parser.NewCodePointRange(0x2CEB0, 0x2EBE0),
+		parser.NewCodePointRange(0x30000, 0x3134A),
+	},
+	"TANGUT IDEOGRAPH-": {
+		parser.NewCodePointRange(0x17000, 0x187F7),
+		parser.NewCodePointRange(0x18D00, 0x18D08),
+	},
+	"KHITAN SMALL SCRIPT CHARACTER-": {
+		parser.NewCodePointRange(0x18B00, 0x18CD5),
+	},
+	"NUSHU CHARACTER-": {
+		parser.NewCodePointRange(0x1B170, 0x1B2FB),
+	},
+	"CJK COMPATIBILITY IDEOGRAPH-": {
+		parser.NewCodePointRange(0xF900, 0xFA6D),
+		parser.NewCodePointRange(0xFA70, 0xFAD9),
+		parser.NewCodePointRange(0x2F800, 0x2FA1D),
+	},
+}
+
+func (u *UCD) lookupName(c rune) PropertyValueName {
+	for prefix, cps := range namePrefixes {
+		for _, cp := range cps {
+			if cp.Contain(c) {
+				// TODO: Support the Name property for Hangul syllables following NR1.
+				// See section 4.8 Name in [Unicode].
+				if strings.HasPrefix(prefix, "HANGUL SYLLABLE") {
+					return newNamePropertyValue("<Hangul Syllable>")
+				}
+
+				return newNamePropertyValue(fmt.Sprintf("%v%X", prefix, c))
+			}
+		}
+	}
+	for na, cp := range u.UnicodeData.Name {
+		if cp.Contain(c) {
+			return newNamePropertyValue(na)
+		}
+	}
+	return newNamePropertyValue("")
+}
+
 func (u *UCD) lookupGeneralCategory(c rune) PropertyValueSymbol {
 	for gc, cps := range u.UnicodeData.GeneralCategory {
 		for _, cp := range cps {
-			from, to := cp.Range()
-			if c >= from && c <= to {
+			if cp.Contain(c) {
 				return newSymbolPropertyValue(gc)
 			}
 		}

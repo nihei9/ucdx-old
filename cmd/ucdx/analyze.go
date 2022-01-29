@@ -73,6 +73,7 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 				fmt.Sprintf("(%v)", gs.String()),
 			}
 		}
+		printProperty(props.Lookup(ucd.PropNameName))
 		printProperty(props.Lookup(ucd.PropNameGeneralCategory), opts...)
 		printProperty(props.Lookup(ucd.PropNameAlphabetic))
 		printProperty(props.Lookup(ucd.PropNameLowercase))

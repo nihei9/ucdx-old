@@ -3,6 +3,7 @@ package parser
 import "io"
 
 type UnicodeData struct {
+	Name            map[string]*CodePointRange   `json:"name"`
 	GeneralCategory map[string][]*CodePointRange `json:"general_category"`
 }
 
@@ -16,11 +17,11 @@ func (u *UnicodeData) addGC(gc string, cp *CodePointRange) {
 
 	cps, ok := u.GeneralCategory[gc]
 	if ok {
-		cpFrom, cpTo := cp.Range()
-		c := cps[len(cps)-1]
-		cFrom, cTo := c.Range()
-		if cpFrom-cTo == 1 {
-			c.Rewrite(cFrom, cpTo)
+		from1, to1 := cp.Range()
+		i := len(cps) - 1
+		from2, to2 := cps[i].Range()
+		if from1-to2 == 1 {
+			cps[i] = NewCodePointRange(from2, to1)
 		} else {
 			u.GeneralCategory[gc] = append(cps, cp)
 		}
@@ -32,6 +33,7 @@ func (u *UnicodeData) addGC(gc string, cp *CodePointRange) {
 // ParseUnicodeData parses the UnicodeData.txt.
 func ParseUnicodeData(r io.Reader) (*UnicodeData, error) {
 	ud := &UnicodeData{
+		Name:            map[string]*CodePointRange{},
 		GeneralCategory: map[string][]*CodePointRange{},
 	}
 
@@ -44,6 +46,10 @@ func ParseUnicodeData(r io.Reader) (*UnicodeData, error) {
 		cp, err := p.fields[0].codePointRange()
 		if err != nil {
 			return nil, err
+		}
+		na, ok := p.fields[1].name()
+		if ok {
+			ud.Name[na] = cp
 		}
 		gc := p.fields[2].normalizedSymbol()
 		ud.addGC(gc, cp)
