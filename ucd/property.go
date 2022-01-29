@@ -17,6 +17,10 @@ const (
 	PropNameAlphabetic      PropertyName = "Alphabetic"
 	PropNameLowercase       PropertyName = "Lowercase"
 	PropNameUppercase       PropertyName = "Uppercase"
+	PropNameIDStart         PropertyName = "ID_Start"
+	PropNameIDContinue      PropertyName = "ID_Continue"
+	PropNameXIDStart        PropertyName = "ID_XStart"
+	PropNameXIDContinue     PropertyName = "ID_XContinue"
 )
 
 type PropertyValue interface {
@@ -119,6 +123,10 @@ func (u *UCD) AnalizeCodePoint(c rune) *PropertySet {
 			PropNameAlphabetic:      newProperty(PropNameAlphabetic, u.isAlphabetic(c)),
 			PropNameUppercase:       newProperty(PropNameUppercase, u.isUppercase(c)),
 			PropNameLowercase:       newProperty(PropNameLowercase, u.isLowercase(c)),
+			PropNameIDStart:         newProperty(PropNameIDStart, u.isIDStart(c)),
+			PropNameIDContinue:      newProperty(PropNameIDContinue, u.isIDContinue(c)),
+			PropNameXIDStart:        newProperty(PropNameXIDStart, u.isXIDStart(c)),
+			PropNameXIDContinue:     newProperty(PropNameXIDContinue, u.isXIDContinue(c)),
 			PropNameWhiteSpace:      newProperty(PropNameWhiteSpace, u.isWhiteSpace(c)),
 		},
 		GeneralCategoryGroups: lookupGCGroups(gc),
@@ -223,6 +231,42 @@ func (u *UCD) isLowercase(c rune) PropertyValueBinary {
 
 func (u *UCD) isUppercase(c rune) PropertyValueBinary {
 	for _, cp := range u.DerivedCoreProperties.Entries[string(PropNameUppercase)] {
+		if cp.Contain(c) {
+			return BinaryYes
+		}
+	}
+	return BinaryNo
+}
+
+func (u *UCD) isIDStart(c rune) PropertyValueBinary {
+	for _, cp := range u.DerivedCoreProperties.Entries[string(PropNameIDStart)] {
+		if cp.Contain(c) {
+			return BinaryYes
+		}
+	}
+	return BinaryNo
+}
+
+func (u *UCD) isIDContinue(c rune) PropertyValueBinary {
+	for _, cp := range u.DerivedCoreProperties.Entries[string(PropNameIDContinue)] {
+		if cp.Contain(c) {
+			return BinaryYes
+		}
+	}
+	return BinaryNo
+}
+
+func (u *UCD) isXIDStart(c rune) PropertyValueBinary {
+	for _, cp := range u.DerivedCoreProperties.Entries[string(PropNameXIDStart)] {
+		if cp.Contain(c) {
+			return BinaryYes
+		}
+	}
+	return BinaryNo
+}
+
+func (u *UCD) isXIDContinue(c rune) PropertyValueBinary {
+	for _, cp := range u.DerivedCoreProperties.Entries[string(PropNameXIDContinue)] {
 		if cp.Contain(c) {
 			return BinaryYes
 		}

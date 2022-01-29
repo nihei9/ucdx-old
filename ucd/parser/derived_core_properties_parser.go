@@ -20,7 +20,8 @@ func ParseDerivedCoreProperties(r io.Reader) (*DerivedCoreProperties, error) {
 			return nil, err
 		}
 		sym := p.fields[1].symbol()
-		if sym == "Alphabetic" || sym == "Uppercase" || sym == "Lowercase" {
+		if sym == "Alphabetic" || sym == "Uppercase" || sym == "Lowercase" ||
+			sym == "ID_Start" || sym == "ID_Continue" || sym == "XID_Start" || sym == "XID_Continue" {
 			props[sym] = append(props[sym], cp)
 		}
 	}
