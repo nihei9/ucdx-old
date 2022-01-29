@@ -79,9 +79,6 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 		printProperty(props.Lookup(ucd.PropNameAlphabetic))
 		printProperty(props.Lookup(ucd.PropNameLowercase))
 		printProperty(props.Lookup(ucd.PropNameUppercase))
-		printProperty(props.Lookup(ucd.PropNameOtherAlphabetic))
-		printProperty(props.Lookup(ucd.PropNameOtherLowercase))
-		printProperty(props.Lookup(ucd.PropNameOtherUppercase))
 		printProperty(props.Lookup(ucd.PropNameWhiteSpace))
 	}
 }

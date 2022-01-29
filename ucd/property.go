@@ -13,9 +13,6 @@ const (
 	PropNameName            PropertyName = "Name"
 	PropNameNameAlias       PropertyName = "Name_Alias"
 	PropNameGeneralCategory PropertyName = "General_Category"
-	PropNameOtherAlphabetic PropertyName = "Other_Alphabetic"
-	PropNameOtherLowercase  PropertyName = "Other_Lowercase"
-	PropNameOtherUppercase  PropertyName = "Other_Uppercase"
 	PropNameWhiteSpace      PropertyName = "White_Space"
 	PropNameAlphabetic      PropertyName = "Alphabetic"
 	PropNameLowercase       PropertyName = "Lowercase"
@@ -24,7 +21,6 @@ const (
 
 type PropertyValue interface {
 	fmt.Stringer
-	equal(o PropertyValue) bool
 }
 
 type PropertyValueName string
@@ -35,14 +31,6 @@ func newNamePropertyValue(v string) PropertyValueName {
 
 func (v PropertyValueName) String() string {
 	return string(v)
-}
-
-func (v PropertyValueName) equal(o PropertyValue) bool {
-	s, ok := o.(PropertyValueName)
-	if !ok {
-		return false
-	}
-	return v == s
 }
 
 type PropertyValueNameList []PropertyValueName
@@ -64,19 +52,6 @@ func (v PropertyValueNameList) String() string {
 	return b.String()
 }
 
-func (v PropertyValueNameList) equal(o PropertyValue) bool {
-	l, ok := o.(PropertyValueNameList)
-	if !ok {
-		return false
-	}
-	for _, e := range l {
-		if !e.equal(v) {
-			return false
-		}
-	}
-	return true
-}
-
 type PropertyValueSymbol string
 
 func newSymbolPropertyValue(v string) PropertyValueSymbol {
@@ -85,14 +60,6 @@ func newSymbolPropertyValue(v string) PropertyValueSymbol {
 
 func (v PropertyValueSymbol) String() string {
 	return string(v)
-}
-
-func (v PropertyValueSymbol) equal(o PropertyValue) bool {
-	s, ok := o.(PropertyValueSymbol)
-	if !ok {
-		return false
-	}
-	return v == s
 }
 
 type PropertyValueBinary bool
@@ -109,14 +76,6 @@ func (v PropertyValueBinary) String() string {
 	return "No"
 }
 
-func (v PropertyValueBinary) equal(o PropertyValue) bool {
-	b, ok := o.(PropertyValueBinary)
-	if !ok {
-		return false
-	}
-	return v == b
-}
-
 type Property struct {
 	Name  PropertyName
 	Value PropertyValue
@@ -129,51 +88,40 @@ func newProperty(name PropertyName, value PropertyValue) *Property {
 	}
 }
 
-func (p *Property) equal(o *Property) bool {
-	return p.Name == o.Name && p.Value.equal(o.Value)
-}
-
 type BaseProperties struct {
 	Properties map[PropertyName]*Property
 }
 
 type PropertySet struct {
-	Base                  *BaseProperties
+	Properties            map[PropertyName]*Property
 	GeneralCategoryGroups []PropertyValueSymbol
-	DerivedCore           *DerivedCoreProperties
 }
 
 func (s *PropertySet) Lookup(propName PropertyName) *Property {
-	if v, ok := s.Base.Properties[propName]; ok {
-		return v
-	}
-	return s.DerivedCore.Properies[propName]
+	return s.Properties[propName]
 }
 
 type UCD struct {
-	UnicodeData          *parser.UnicodeData
-	NameAliases          *parser.NameAliases
-	PropertyValueAliases *parser.PropertyValueAliases
-	PropList             *parser.PropList
+	UnicodeData           *parser.UnicodeData
+	NameAliases           *parser.NameAliases
+	DerivedCoreProperties *parser.DerivedCoreProperties
+	PropertyValueAliases  *parser.PropertyValueAliases
+	PropList              *parser.PropList
 }
 
 func (u *UCD) AnalizeCodePoint(c rune) *PropertySet {
 	gc := u.lookupGeneralCategory(c)
-	base := &BaseProperties{
+	return &PropertySet{
 		Properties: map[PropertyName]*Property{
 			PropNameName:            newProperty(PropNameName, u.lookupName(c)),
 			PropNameNameAlias:       newProperty(PropNameNameAlias, u.lookupNameAlias(c)),
 			PropNameGeneralCategory: newProperty(PropNameGeneralCategory, gc),
-			PropNameOtherAlphabetic: newProperty(PropNameOtherAlphabetic, u.isOtherAlphabetic(c)),
-			PropNameOtherLowercase:  newProperty(PropNameOtherLowercase, u.isOtherLowercase(c)),
-			PropNameOtherUppercase:  newProperty(PropNameOtherUppercase, u.isOtherUppercase(c)),
+			PropNameAlphabetic:      newProperty(PropNameAlphabetic, u.isAlphabetic(c)),
+			PropNameUppercase:       newProperty(PropNameUppercase, u.isUppercase(c)),
+			PropNameLowercase:       newProperty(PropNameLowercase, u.isLowercase(c)),
 			PropNameWhiteSpace:      newProperty(PropNameWhiteSpace, u.isWhiteSpace(c)),
 		},
-	}
-	return &PropertySet{
-		Base:                  base,
 		GeneralCategoryGroups: lookupGCGroups(gc),
-		DerivedCore:           calcDerivedCoreProperties(base),
 	}
 }
 
@@ -255,8 +203,8 @@ func (u *UCD) lookupGeneralCategory(c rune) PropertyValueSymbol {
 	return newSymbolPropertyValue(u.PropertyValueAliases.DefaultValues["General_Category"].Value)
 }
 
-func (u *UCD) isOtherAlphabetic(c rune) PropertyValueBinary {
-	for _, cp := range u.PropList.OtherAlphabetic {
+func (u *UCD) isAlphabetic(c rune) PropertyValueBinary {
+	for _, cp := range u.DerivedCoreProperties.Entries[string(PropNameAlphabetic)] {
 		if cp.Contain(c) {
 			return BinaryYes
 		}
@@ -264,8 +212,8 @@ func (u *UCD) isOtherAlphabetic(c rune) PropertyValueBinary {
 	return BinaryNo
 }
 
-func (u *UCD) isOtherLowercase(c rune) PropertyValueBinary {
-	for _, cp := range u.PropList.OtherLowercase {
+func (u *UCD) isLowercase(c rune) PropertyValueBinary {
+	for _, cp := range u.DerivedCoreProperties.Entries[string(PropNameLowercase)] {
 		if cp.Contain(c) {
 			return BinaryYes
 		}
@@ -273,8 +221,8 @@ func (u *UCD) isOtherLowercase(c rune) PropertyValueBinary {
 	return BinaryNo
 }
 
-func (u *UCD) isOtherUppercase(c rune) PropertyValueBinary {
-	for _, cp := range u.PropList.OtherUppercase {
+func (u *UCD) isUppercase(c rune) PropertyValueBinary {
+	for _, cp := range u.DerivedCoreProperties.Entries[string(PropNameUppercase)] {
 		if cp.Contain(c) {
 			return BinaryYes
 		}
