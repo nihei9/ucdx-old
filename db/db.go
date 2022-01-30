@@ -11,6 +11,7 @@ import (
 
 	"github.com/nihei9/ucdx/ucd"
 	"github.com/nihei9/ucdx/ucd/parser"
+	"github.com/nihei9/ucdx/ucd/property"
 )
 
 type DBConfig struct {
@@ -106,65 +107,65 @@ func parseDataFile(dirPath string, dataFileName string) error {
 }
 
 func OpenDB(appDirPath string) (*ucd.UCD, error) {
-	var ud *parser.UnicodeData
+	var ud *property.UnicodeData
 	{
 		d, err := os.ReadFile(makeParsedDataFilePath(appDirPath, ucd.TxtUnicodeData))
 		if err != nil {
 			return nil, err
 		}
-		ud = &parser.UnicodeData{}
+		ud = &property.UnicodeData{}
 		err = json.Unmarshal(d, ud)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	var nameAliases *parser.NameAliases
+	var nameAliases *property.NameAliases
 	{
 		d, err := os.ReadFile(makeParsedDataFilePath(appDirPath, ucd.TxtNameAliases))
 		if err != nil {
 			return nil, err
 		}
-		nameAliases = &parser.NameAliases{}
+		nameAliases = &property.NameAliases{}
 		err = json.Unmarshal(d, nameAliases)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	var derivedCoreProps *parser.DerivedCoreProperties
+	var derivedCoreProps *property.DerivedCoreProperties
 	{
 		d, err := os.ReadFile(makeParsedDataFilePath(appDirPath, ucd.TxtDerivedCoreProperties))
 		if err != nil {
 			return nil, err
 		}
-		derivedCoreProps = &parser.DerivedCoreProperties{}
+		derivedCoreProps = &property.DerivedCoreProperties{}
 		err = json.Unmarshal(d, derivedCoreProps)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	var propValAliases *parser.PropertyValueAliases
+	var propValAliases *property.PropertyValueAliases
 	{
 		d, err := os.ReadFile(makeParsedDataFilePath(appDirPath, ucd.TxtPropertyValueAliases))
 		if err != nil {
 			return nil, err
 		}
-		propValAliases = &parser.PropertyValueAliases{}
+		propValAliases = &property.PropertyValueAliases{}
 		err = json.Unmarshal(d, propValAliases)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	var propList *parser.PropList
+	var propList *property.PropList
 	{
 		d, err := os.ReadFile(makeParsedDataFilePath(appDirPath, ucd.TxtPropList))
 		if err != nil {
 			return nil, err
 		}
-		propList = &parser.PropList{}
+		propList = &property.PropList{}
 		err = json.Unmarshal(d, propList)
 		if err != nil {
 			return nil, err

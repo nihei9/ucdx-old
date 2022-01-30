@@ -1,20 +1,17 @@
 package parser
 
-import "io"
+import (
+	"io"
 
-type PropList struct {
-	OtherAlphabetic []*CodePointRange `json:"Other_Alphabetic"`
-	OtherLowercase  []*CodePointRange `json:"Other_Lowercase"`
-	OtherUppercase  []*CodePointRange `json:"Other_Uppercase"`
-	WhiteSpace      []*CodePointRange `json:"White_Space"`
-}
+	"github.com/nihei9/ucdx/ucd/property"
+)
 
 // ParsePropList parses the PropList.txt.
-func ParsePropList(r io.Reader) (*PropList, error) {
-	var oa []*CodePointRange
-	var ol []*CodePointRange
-	var ou []*CodePointRange
-	var ws []*CodePointRange
+func ParsePropList(r io.Reader) (*property.PropList, error) {
+	var oa []*property.CodePointRange
+	var ol []*property.CodePointRange
+	var ou []*property.CodePointRange
+	var ws []*property.CodePointRange
 	p := newParser(r)
 	for p.parse() {
 		if len(p.fields) == 0 {
@@ -41,7 +38,7 @@ func ParsePropList(r io.Reader) (*PropList, error) {
 		return nil, p.err
 	}
 
-	return &PropList{
+	return &property.PropList{
 		OtherAlphabetic: oa,
 		OtherLowercase:  ol,
 		OtherUppercase:  ou,

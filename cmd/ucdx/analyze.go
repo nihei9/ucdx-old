@@ -11,6 +11,7 @@ import (
 
 	"github.com/nihei9/ucdx/db"
 	"github.com/nihei9/ucdx/ucd"
+	"github.com/nihei9/ucdx/ucd/property"
 	"github.com/spf13/cobra"
 )
 
@@ -73,21 +74,21 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 				fmt.Sprintf("(%v)", gs.String()),
 			}
 		}
-		printProperty(props.Lookup(ucd.PropNameName))
-		printProperty(props.Lookup(ucd.PropNameNameAlias))
-		printProperty(props.Lookup(ucd.PropNameGeneralCategory), opts...)
-		printProperty(props.Lookup(ucd.PropNameAlphabetic))
-		printProperty(props.Lookup(ucd.PropNameLowercase))
-		printProperty(props.Lookup(ucd.PropNameUppercase))
-		printProperty(props.Lookup(ucd.PropNameIDStart))
-		printProperty(props.Lookup(ucd.PropNameIDContinue))
-		printProperty(props.Lookup(ucd.PropNameXIDStart))
-		printProperty(props.Lookup(ucd.PropNameXIDContinue))
-		printProperty(props.Lookup(ucd.PropNameWhiteSpace))
+		printProperty(props.Lookup(property.PropNameName))
+		printProperty(props.Lookup(property.PropNameNameAlias))
+		printProperty(props.Lookup(property.PropNameGeneralCategory), opts...)
+		printProperty(props.Lookup(property.PropNameAlphabetic))
+		printProperty(props.Lookup(property.PropNameLowercase))
+		printProperty(props.Lookup(property.PropNameUppercase))
+		printProperty(props.Lookup(property.PropNameIDStart))
+		printProperty(props.Lookup(property.PropNameIDContinue))
+		printProperty(props.Lookup(property.PropNameXIDStart))
+		printProperty(props.Lookup(property.PropNameXIDContinue))
+		printProperty(props.Lookup(property.PropNameWhiteSpace))
 	}
 }
 
-func printProperty(prop *ucd.Property, opts ...string) {
+func printProperty(prop *property.Property, opts ...string) {
 	fmt.Printf("%-20v: %v", prop.Name, prop.Value)
 	for _, opt := range opts {
 		fmt.Printf(" %v", opt)

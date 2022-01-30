@@ -1,9 +1,13 @@
 package ucd
 
-import "sort"
+import (
+	"sort"
+
+	"github.com/nihei9/ucdx/ucd/property"
+)
 
 // See section 5.7.1 General Category Values in [UAX44].
-var generalCategoryGroups = map[PropertyValueSymbol][]PropertyValueSymbol{
+var generalCategoryGroups = map[property.PropertyValueSymbol][]property.PropertyValueSymbol{
 	// Cased_Letter
 	"lc": {"lu", "ll", "lt"},
 	// Letter
@@ -22,9 +26,9 @@ var generalCategoryGroups = map[PropertyValueSymbol][]PropertyValueSymbol{
 	"c": {"cc", "cf", "cs", "co", "cn"},
 }
 
-func lookupGCGroups(gc PropertyValueSymbol) []PropertyValueSymbol {
+func lookupGCGroups(gc property.PropertyValueSymbol) []property.PropertyValueSymbol {
 	// A General_Category may belong to one or more groups.
-	var groups []PropertyValueSymbol
+	var groups []property.PropertyValueSymbol
 	for group, gcs := range generalCategoryGroups {
 		for _, g := range gcs {
 			if g == gc {

@@ -1,34 +1,15 @@
 package parser
 
-import "io"
+import (
+	"io"
 
-type PropertyValueAliases struct {
-	Aliases       map[string]*PropertyValueAliase `json:"aliases"`
-	DefaultValues map[string]*DefaultValue        `json:"default_values"`
-}
-
-// PropertyValueAliase represents a set of aliases for a property value.
-// `Abb` and `Long` are the preferred aliases.
-type PropertyValueAliase struct {
-	// Abb is an abbreviated symbolic name for a property value.
-	Abb string `json:"abb"`
-
-	// Long is the long symbolic name for a property value.
-	Long string `json:"long"`
-
-	// Others is a set of other aliases for a property value.
-	Others []string `json:"others,omitempty"`
-}
-
-type DefaultValue struct {
-	Value string          `json:"value"`
-	CP    *CodePointRange `json:"cp"`
-}
+	"github.com/nihei9/ucdx/ucd/property"
+)
 
 // ParsePropertyValueAliases parses the PropertyValueAliases.txt.
-func ParsePropertyValueAliases(r io.Reader) (*PropertyValueAliases, error) {
-	aliases := map[string]*PropertyValueAliase{}
-	defaultValues := map[string]*DefaultValue{}
+func ParsePropertyValueAliases(r io.Reader) (*property.PropertyValueAliases, error) {
+	aliases := map[string]*property.PropertyValueAliase{}
+	defaultValues := map[string]*property.DefaultValue{}
 
 	p := newParser(r)
 	for p.parse() {
@@ -42,7 +23,7 @@ func ParsePropertyValueAliases(r io.Reader) (*PropertyValueAliases, error) {
 					others[i] = f.normalizedSymbol()
 				}
 			}
-			aliases[p.fields[0].normalizedSymbol()] = &PropertyValueAliase{
+			aliases[p.fields[0].normalizedSymbol()] = &property.PropertyValueAliase{
 				Abb:    p.fields[1].normalizedSymbol(),
 				Long:   p.fields[2].normalizedSymbol(),
 				Others: others,
@@ -58,7 +39,7 @@ func ParsePropertyValueAliases(r io.Reader) (*PropertyValueAliases, error) {
 			prop := p.defaultFields[1].symbol()
 			val := p.defaultFields[2].normalizedSymbol()
 
-			defaultValues[prop] = &DefaultValue{
+			defaultValues[prop] = &property.DefaultValue{
 				Value: val,
 				CP:    cp,
 			}
@@ -67,7 +48,7 @@ func ParsePropertyValueAliases(r io.Reader) (*PropertyValueAliases, error) {
 	if p.err != nil {
 		return nil, p.err
 	}
-	return &PropertyValueAliases{
+	return &property.PropertyValueAliases{
 		Aliases:       aliases,
 		DefaultValues: defaultValues,
 	}, nil

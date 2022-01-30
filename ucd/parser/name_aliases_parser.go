@@ -3,19 +3,12 @@ package parser
 import (
 	"io"
 	"sort"
+
+	"github.com/nihei9/ucdx/ucd/property"
 )
 
-type NameAliasesEntry struct {
-	CP      rune     `json:"cp"`
-	Aliases []string `json:"aliases"`
-}
-
-type NameAliases struct {
-	Entries []*NameAliasesEntry `json:"entries"`
-}
-
 // ParseNameAliases parses the NameAliases.txt.
-func ParseNameAliases(r io.Reader) (*NameAliases, error) {
+func ParseNameAliases(r io.Reader) (*property.NameAliases, error) {
 	aliases := map[rune][]string{}
 	p := newParser(r)
 	for p.parse() {
@@ -38,9 +31,9 @@ func ParseNameAliases(r io.Reader) (*NameAliases, error) {
 		return nil, p.err
 	}
 
-	entries := make([]*NameAliasesEntry, 0, len(aliases))
+	entries := make([]*property.NameAliasesEntry, 0, len(aliases))
 	for c, as := range aliases {
-		entries = append(entries, &NameAliasesEntry{
+		entries = append(entries, &property.NameAliasesEntry{
 			CP:      c,
 			Aliases: as,
 		})
@@ -49,7 +42,7 @@ func ParseNameAliases(r io.Reader) (*NameAliases, error) {
 		return entries[i].CP < entries[j].CP
 	})
 
-	return &NameAliases{
+	return &property.NameAliases{
 		Entries: entries,
 	}, nil
 }

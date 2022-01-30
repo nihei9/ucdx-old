@@ -1,14 +1,14 @@
 package parser
 
-import "io"
+import (
+	"io"
 
-type DerivedCoreProperties struct {
-	Entries map[string][]*CodePointRange `json:"entries"`
-}
+	"github.com/nihei9/ucdx/ucd/property"
+)
 
 // ParseDerivedCoreProperties parses the DerivedCoreProperties.txt.
-func ParseDerivedCoreProperties(r io.Reader) (*DerivedCoreProperties, error) {
-	props := map[string][]*CodePointRange{}
+func ParseDerivedCoreProperties(r io.Reader) (*property.DerivedCoreProperties, error) {
+	props := map[string][]*property.CodePointRange{}
 	p := newParser(r)
 	for p.parse() {
 		if len(p.fields) == 0 {
@@ -29,7 +29,7 @@ func ParseDerivedCoreProperties(r io.Reader) (*DerivedCoreProperties, error) {
 		return nil, p.err
 	}
 
-	return &DerivedCoreProperties{
+	return &property.DerivedCoreProperties{
 		Entries: props,
 	}, nil
 }

@@ -4,10 +4,11 @@ import (
 	"bufio"
 	"encoding/binary"
 	"encoding/hex"
-	"fmt"
 	"io"
 	"regexp"
 	"strings"
+
+	"github.com/nihei9/ucdx/ucd/property"
 )
 
 var (
@@ -81,29 +82,6 @@ func parseFields(buf []field, src string) []field {
 	return buf[:n]
 }
 
-type CodePointRange [2]rune
-
-func NewCodePointRange(from, to rune) *CodePointRange {
-	cp := CodePointRange{}
-	cp[0] = from
-	cp[1] = to
-	return &cp
-}
-
-func (r *CodePointRange) String() string {
-	from, to := r.Range()
-	return fmt.Sprintf("%X..%X", from, to)
-}
-
-func (r *CodePointRange) Range() (rune, rune) {
-	return r[0], r[1]
-}
-
-func (r *CodePointRange) Contain(c rune) bool {
-	from, to := r.Range()
-	return c >= from && c <= to
-}
-
 type field string
 
 func (f field) String() string {
@@ -111,7 +89,7 @@ func (f field) String() string {
 }
 
 // codePointRange returns a code point range.
-func (f field) codePointRange() (*CodePointRange, error) {
+func (f field) codePointRange() (*property.CodePointRange, error) {
 	var from, to rune
 	var err error
 	cp := reCodePointRange.FindStringSubmatch(string(f))
@@ -127,7 +105,7 @@ func (f field) codePointRange() (*CodePointRange, error) {
 	} else {
 		to = from
 	}
-	return NewCodePointRange(from, to), nil
+	return property.NewCodePointRange(from, to), nil
 }
 
 func decodeHexToRune(hexCodePoint string) (rune, error) {

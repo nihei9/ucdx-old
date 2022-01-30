@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/nihei9/ucdx/ucd/property"
 )
 
 func TestParser(t *testing.T) {
@@ -173,19 +175,19 @@ func TestParser(t *testing.T) {
 func TestField_codePointRange(t *testing.T) {
 	tests := []struct {
 		field field
-		cp    *CodePointRange
+		cp    *property.CodePointRange
 	}{
 		{
 			field: "0",
-			cp:    NewCodePointRange(0x0, 0x0),
+			cp:    property.NewCodePointRange(0x0, 0x0),
 		},
 		{
 			field: "10FFFF",
-			cp:    NewCodePointRange(0x10FFFF, 0x10FFFF),
+			cp:    property.NewCodePointRange(0x10FFFF, 0x10FFFF),
 		},
 		{
 			field: "0..10FFFF",
-			cp:    NewCodePointRange(0x0, 0x10FFFF),
+			cp:    property.NewCodePointRange(0x0, 0x10FFFF),
 		},
 	}
 	for _, tt := range tests {
