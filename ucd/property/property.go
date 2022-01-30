@@ -176,8 +176,5 @@ type PropertyValueAliases struct {
 }
 
 type PropList struct {
-	OtherAlphabetic []*CodePointRange `json:"Other_Alphabetic"`
-	OtherLowercase  []*CodePointRange `json:"Other_Lowercase"`
-	OtherUppercase  []*CodePointRange `json:"Other_Uppercase"`
-	WhiteSpace      []*CodePointRange `json:"White_Space"`
+	WhiteSpace []*CodePointRange `json:"White_Space"`
 }
