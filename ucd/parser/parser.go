@@ -130,26 +130,26 @@ func decodeHexToRune(hexCodePoint string) (rune, error) {
 // See section 4.8 Name in [Unicode].
 // > Interpretation of Field 1 of UnicodeData.txt. Where Field 1 of UnicodeData.txt contains a string enclosed in
 // > angle brackets, “<” and “>”, such a string is not a character name, ...
-func (f field) name() (string, bool) {
+func (f field) name() (property.PropertyName, bool) {
 	s := string(f)
 	if strings.HasPrefix(s, "<") && strings.HasSuffix(s, ">") {
 		return "", false
 	}
-	return s, true
+	return property.NewPropertyName(s), true
 }
 
 // symbol returns a symbolic value.
-func (f field) symbol() string {
-	return string(f)
+func (f field) symbol() property.PropertyValueSymbol {
+	return property.NewSymbolPropertyValue(string(f))
 }
 
 // normalizeSymbolicValue returns a normalized symbolic value.
 //
 // The normalization algorithm follows UAX44-LM3 defined section 5.9.3 Matching Symbolic Values in [UAX44].
-func (f field) normalizedSymbol() string {
-	sym := strings.ToLower(symValReplacer.Replace(f.symbol()))
+func (f field) normalizedSymbol() property.PropertyValueSymbol {
+	sym := strings.ToLower(symValReplacer.Replace(string(f)))
 	if sym == "is" {
-		return sym
+		return property.NewSymbolPropertyValue(sym)
 	}
-	return strings.TrimPrefix(sym, "is")
+	return property.NewSymbolPropertyValue(strings.TrimPrefix(sym, "is"))
 }

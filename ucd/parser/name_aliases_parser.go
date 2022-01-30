@@ -9,7 +9,7 @@ import (
 
 // ParseNameAliases parses the NameAliases.txt.
 func ParseNameAliases(r io.Reader) (*property.NameAliases, error) {
-	aliases := map[rune][]string{}
+	aliases := map[rune][]property.PropertyName{}
 	p := newParser(r)
 	for p.parse() {
 		if len(p.fields) == 0 {
@@ -20,12 +20,12 @@ func ParseNameAliases(r io.Reader) (*property.NameAliases, error) {
 		if err != nil {
 			return nil, err
 		}
-		na, ok := p.fields[1].name()
+		name, ok := p.fields[1].name()
 		if !ok {
 			continue
 		}
 		c, _ := cp.Range()
-		aliases[c] = append(aliases[c], na)
+		aliases[c] = append(aliases[c], name)
 	}
 	if p.err != nil {
 		return nil, p.err

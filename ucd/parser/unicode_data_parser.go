@@ -9,8 +9,8 @@ import (
 // ParseUnicodeData parses the UnicodeData.txt.
 func ParseUnicodeData(r io.Reader) (*property.UnicodeData, error) {
 	ud := &property.UnicodeData{
-		Name:            map[string]*property.CodePointRange{},
-		GeneralCategory: map[string][]*property.CodePointRange{},
+		Name:            map[property.PropertyName]*property.CodePointRange{},
+		GeneralCategory: map[property.PropertyValueSymbol][]*property.CodePointRange{},
 	}
 
 	p := newParser(r)
@@ -23,9 +23,9 @@ func ParseUnicodeData(r io.Reader) (*property.UnicodeData, error) {
 		if err != nil {
 			return nil, err
 		}
-		na, ok := p.fields[1].name()
+		name, ok := p.fields[1].name()
 		if ok {
-			ud.Name[na] = cp
+			ud.Name[name] = cp
 		}
 		gc := p.fields[2].normalizedSymbol()
 		ud.AddGC(gc, cp)

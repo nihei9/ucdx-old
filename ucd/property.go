@@ -76,36 +76,36 @@ var namePrefixes = map[string][]*property.CodePointRange{
 	},
 }
 
-func (u *UCD) lookupName(c rune) property.PropertyValueName {
+func (u *UCD) lookupName(c rune) property.PropertyName {
 	for prefix, cps := range namePrefixes {
 		for _, cp := range cps {
 			if cp.Contain(c) {
 				// TODO: Support the Name property for Hangul syllables following NR1.
 				// See section 4.8 Name in [Unicode].
 				if strings.HasPrefix(prefix, "HANGUL SYLLABLE") {
-					return property.NewNamePropertyValue("<Hangul Syllable>")
+					return property.NewPropertyName("<Hangul Syllable>")
 				}
 
-				return property.NewNamePropertyValue(fmt.Sprintf("%v%X", prefix, c))
+				return property.NewPropertyName(fmt.Sprintf("%v%X", prefix, c))
 			}
 		}
 	}
 	for na, cp := range u.UnicodeData.Name {
 		if cp.Contain(c) {
-			return property.NewNamePropertyValue(na)
+			return na
 		}
 	}
-	return property.NewNamePropertyValue("")
+	return property.NewPropertyName("")
 }
 
-func (u *UCD) lookupNameAlias(c rune) property.PropertyValueNameList {
+func (u *UCD) lookupNameAlias(c rune) property.PropertyNameList {
 	for _, e := range u.NameAliases.Entries {
 		if e.CP == c {
-			as := make([]property.PropertyValueName, len(e.Aliases))
+			as := make([]property.PropertyName, len(e.Aliases))
 			for i, alias := range e.Aliases {
-				as[i] = property.NewNamePropertyValue(alias)
+				as[i] = alias
 			}
-			return property.NewNameListPropertyValue(as)
+			return property.NewPropertyNameList(as)
 		}
 	}
 	return nil
@@ -115,15 +115,15 @@ func (u *UCD) lookupGeneralCategory(c rune) property.PropertyValueSymbol {
 	for gc, cps := range u.UnicodeData.GeneralCategory {
 		for _, cp := range cps {
 			if cp.Contain(c) {
-				return property.NewSymbolPropertyValue(gc)
+				return gc
 			}
 		}
 	}
-	return property.NewSymbolPropertyValue(u.PropertyValueAliases.DefaultValues["General_Category"].Value)
+	return u.PropertyValueAliases.DefaultValues[property.PropNameGeneralCategory].Value
 }
 
 func (u *UCD) isAlphabetic(c rune) property.PropertyValueBinary {
-	for _, cp := range u.DerivedCoreProperties.Entries[string(property.PropNameAlphabetic)] {
+	for _, cp := range u.DerivedCoreProperties.Entries[property.PropNameAlphabetic] {
 		if cp.Contain(c) {
 			return property.BinaryYes
 		}
@@ -132,7 +132,7 @@ func (u *UCD) isAlphabetic(c rune) property.PropertyValueBinary {
 }
 
 func (u *UCD) isLowercase(c rune) property.PropertyValueBinary {
-	for _, cp := range u.DerivedCoreProperties.Entries[string(property.PropNameLowercase)] {
+	for _, cp := range u.DerivedCoreProperties.Entries[property.PropNameLowercase] {
 		if cp.Contain(c) {
 			return property.BinaryYes
 		}
@@ -141,7 +141,7 @@ func (u *UCD) isLowercase(c rune) property.PropertyValueBinary {
 }
 
 func (u *UCD) isUppercase(c rune) property.PropertyValueBinary {
-	for _, cp := range u.DerivedCoreProperties.Entries[string(property.PropNameUppercase)] {
+	for _, cp := range u.DerivedCoreProperties.Entries[property.PropNameUppercase] {
 		if cp.Contain(c) {
 			return property.BinaryYes
 		}
@@ -150,7 +150,7 @@ func (u *UCD) isUppercase(c rune) property.PropertyValueBinary {
 }
 
 func (u *UCD) isIDStart(c rune) property.PropertyValueBinary {
-	for _, cp := range u.DerivedCoreProperties.Entries[string(property.PropNameIDStart)] {
+	for _, cp := range u.DerivedCoreProperties.Entries[property.PropNameIDStart] {
 		if cp.Contain(c) {
 			return property.BinaryYes
 		}
@@ -159,7 +159,7 @@ func (u *UCD) isIDStart(c rune) property.PropertyValueBinary {
 }
 
 func (u *UCD) isIDContinue(c rune) property.PropertyValueBinary {
-	for _, cp := range u.DerivedCoreProperties.Entries[string(property.PropNameIDContinue)] {
+	for _, cp := range u.DerivedCoreProperties.Entries[property.PropNameIDContinue] {
 		if cp.Contain(c) {
 			return property.BinaryYes
 		}
@@ -168,7 +168,7 @@ func (u *UCD) isIDContinue(c rune) property.PropertyValueBinary {
 }
 
 func (u *UCD) isXIDStart(c rune) property.PropertyValueBinary {
-	for _, cp := range u.DerivedCoreProperties.Entries[string(property.PropNameXIDStart)] {
+	for _, cp := range u.DerivedCoreProperties.Entries[property.PropNameXIDStart] {
 		if cp.Contain(c) {
 			return property.BinaryYes
 		}
@@ -177,7 +177,7 @@ func (u *UCD) isXIDStart(c rune) property.PropertyValueBinary {
 }
 
 func (u *UCD) isXIDContinue(c rune) property.PropertyValueBinary {
-	for _, cp := range u.DerivedCoreProperties.Entries[string(property.PropNameXIDContinue)] {
+	for _, cp := range u.DerivedCoreProperties.Entries[property.PropNameXIDContinue] {
 		if cp.Contain(c) {
 			return property.BinaryYes
 		}

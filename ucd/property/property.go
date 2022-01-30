@@ -28,7 +28,19 @@ func (r *CodePointRange) Contain(c rune) bool {
 	return c >= from && c <= to
 }
 
+type PropertyValue interface {
+	fmt.Stringer
+}
+
 type PropertyName string
+
+func NewPropertyName(s string) PropertyName {
+	return PropertyName(s)
+}
+
+func (n PropertyName) String() string {
+	return string(n)
+}
 
 const (
 	PropNameName            PropertyName = "Name"
@@ -44,27 +56,13 @@ const (
 	PropNameXIDContinue     PropertyName = "ID_XContinue"
 )
 
-type PropertyValue interface {
-	fmt.Stringer
+type PropertyNameList []PropertyName
+
+func NewPropertyNameList(v []PropertyName) PropertyNameList {
+	return PropertyNameList(v)
 }
 
-type PropertyValueName string
-
-func NewNamePropertyValue(v string) PropertyValueName {
-	return PropertyValueName(v)
-}
-
-func (v PropertyValueName) String() string {
-	return string(v)
-}
-
-type PropertyValueNameList []PropertyValueName
-
-func NewNameListPropertyValue(v []PropertyValueName) PropertyValueNameList {
-	return PropertyValueNameList(v)
-}
-
-func (v PropertyValueNameList) String() string {
+func (v PropertyNameList) String() string {
 	if len(v) == 0 {
 		return ""
 	}
@@ -114,11 +112,11 @@ func NewProperty(name PropertyName, value PropertyValue) *Property {
 }
 
 type UnicodeData struct {
-	Name            map[string]*CodePointRange   `json:"name"`
-	GeneralCategory map[string][]*CodePointRange `json:"general_category"`
+	Name            map[PropertyName]*CodePointRange          `json:"name"`
+	GeneralCategory map[PropertyValueSymbol][]*CodePointRange `json:"general_category"`
 }
 
-func (u *UnicodeData) AddGC(gc string, cp *CodePointRange) {
+func (u *UnicodeData) AddGC(gc PropertyValueSymbol, cp *CodePointRange) {
 	// Section 4.2.11 Empty Fields in [UAX44]:
 	// > The data file UnicodeData.txt defines many property values in each record. When a field in a data line
 	// > for a code point is empty, that indicates that the property takes the default value for that code point.
@@ -142,8 +140,8 @@ func (u *UnicodeData) AddGC(gc string, cp *CodePointRange) {
 }
 
 type NameAliasesEntry struct {
-	CP      rune     `json:"cp"`
-	Aliases []string `json:"aliases"`
+	CP      rune           `json:"cp"`
+	Aliases []PropertyName `json:"aliases"`
 }
 
 type NameAliases struct {
@@ -151,30 +149,30 @@ type NameAliases struct {
 }
 
 type DerivedCoreProperties struct {
-	Entries map[string][]*CodePointRange `json:"entries"`
+	Entries map[PropertyName][]*CodePointRange `json:"entries"`
 }
 
 // PropertyValueAliase represents a set of aliases for a property value.
 // `Abb` and `Long` are the preferred aliases.
 type PropertyValueAliase struct {
 	// Abb is an abbreviated symbolic name for a property value.
-	Abb string `json:"abb"`
+	Abb PropertyValueSymbol `json:"abb"`
 
 	// Long is the long symbolic name for a property value.
-	Long string `json:"long"`
+	Long PropertyValueSymbol `json:"long"`
 
 	// Others is a set of other aliases for a property value.
-	Others []string `json:"others,omitempty"`
+	Others []PropertyValueSymbol `json:"others,omitempty"`
 }
 
 type DefaultValue struct {
-	Value string          `json:"value"`
-	CP    *CodePointRange `json:"cp"`
+	Value PropertyValueSymbol `json:"value"`
+	CP    *CodePointRange     `json:"cp"`
 }
 
 type PropertyValueAliases struct {
-	Aliases       map[string]*PropertyValueAliase `json:"aliases"`
-	DefaultValues map[string]*DefaultValue        `json:"default_values"`
+	Aliases       map[PropertyValueSymbol]*PropertyValueAliase `json:"aliases"`
+	DefaultValues map[PropertyName]*DefaultValue               `json:"default_values"`
 }
 
 type PropList struct {

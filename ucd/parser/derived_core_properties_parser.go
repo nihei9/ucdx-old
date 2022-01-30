@@ -8,7 +8,7 @@ import (
 
 // ParseDerivedCoreProperties parses the DerivedCoreProperties.txt.
 func ParseDerivedCoreProperties(r io.Reader) (*property.DerivedCoreProperties, error) {
-	props := map[string][]*property.CodePointRange{}
+	props := map[property.PropertyName][]*property.CodePointRange{}
 	p := newParser(r)
 	for p.parse() {
 		if len(p.fields) == 0 {
@@ -19,10 +19,12 @@ func ParseDerivedCoreProperties(r io.Reader) (*property.DerivedCoreProperties, e
 		if err != nil {
 			return nil, err
 		}
-		sym := p.fields[1].symbol()
-		if sym == "Alphabetic" || sym == "Uppercase" || sym == "Lowercase" ||
-			sym == "ID_Start" || sym == "ID_Continue" || sym == "XID_Start" || sym == "XID_Continue" {
-			props[sym] = append(props[sym], cp)
+		name, _ := p.fields[1].name()
+		if name == property.PropNameAlphabetic || name == property.PropNameUppercase ||
+			name == property.PropNameLowercase || name == property.PropNameIDStart ||
+			name == property.PropNameIDContinue || name == property.PropNameXIDStart ||
+			name == property.PropNameXIDContinue {
+			props[name] = append(props[name], cp)
 		}
 	}
 	if p.err != nil {

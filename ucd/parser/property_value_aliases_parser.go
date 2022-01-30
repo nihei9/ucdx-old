@@ -8,17 +8,17 @@ import (
 
 // ParsePropertyValueAliases parses the PropertyValueAliases.txt.
 func ParsePropertyValueAliases(r io.Reader) (*property.PropertyValueAliases, error) {
-	aliases := map[string]*property.PropertyValueAliase{}
-	defaultValues := map[string]*property.DefaultValue{}
+	aliases := map[property.PropertyValueSymbol]*property.PropertyValueAliase{}
+	defaultValues := map[property.PropertyName]*property.DefaultValue{}
 
 	p := newParser(r)
 	for p.parse() {
 		// The format of the data file is explained in section 5.8.2 Property Value Aliases in [UAX44].
 		if len(p.fields) > 0 {
-			var others []string
+			var others []property.PropertyValueSymbol
 			if len(p.fields) >= 4 {
 				rest := p.fields[3:]
-				others = make([]string, len(rest))
+				others = make([]property.PropertyValueSymbol, len(rest))
 				for i, f := range rest {
 					others[i] = f.normalizedSymbol()
 				}
@@ -31,17 +31,16 @@ func ParsePropertyValueAliases(r io.Reader) (*property.PropertyValueAliases, err
 		}
 
 		// The format of the default values is explained in section 4.2.10 @missing Conventions in [UAX44].
-		if len(p.defaultFields) > 0 && p.defaultFields[1].symbol() == "General_Category" {
-			cp, err := p.defaultFields[0].codePointRange()
-			if err != nil {
-				return nil, err
-			}
-			prop := p.defaultFields[1].symbol()
-			val := p.defaultFields[2].normalizedSymbol()
-
-			defaultValues[prop] = &property.DefaultValue{
-				Value: val,
-				CP:    cp,
+		if len(p.defaultFields) > 0 {
+			if propName, _ := p.defaultFields[1].name(); propName == property.PropNameGeneralCategory {
+				cp, err := p.defaultFields[0].codePointRange()
+				if err != nil {
+					return nil, err
+				}
+				defaultValues[propName] = &property.DefaultValue{
+					Value: p.defaultFields[2].normalizedSymbol(),
+					CP:    cp,
+				}
 			}
 		}
 	}

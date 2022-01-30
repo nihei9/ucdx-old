@@ -208,7 +208,7 @@ func TestField_codePointRange(t *testing.T) {
 func TestField_normalizedSymbol(t *testing.T) {
 	tests := []struct {
 		field field
-		norm  string
+		norm  property.PropertyValueSymbol
 	}{
 		{
 			field: "Foo",
