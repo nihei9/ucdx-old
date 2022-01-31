@@ -23,6 +23,7 @@ func MakeDB(config *DBConfig) error {
 		ucd.TxtUnicodeData,
 		ucd.TxtNameAliases,
 		ucd.TxtDerivedCoreProperties,
+		ucd.TxtPropertyAliases,
 		ucd.TxtPropertyValueAliases,
 		ucd.TxtPropList,
 	}
@@ -88,6 +89,8 @@ func parseDataFile(dirPath string, dataFileName string) error {
 		data, err = parser.ParseNameAliases(f)
 	case ucd.TxtDerivedCoreProperties:
 		data, err = parser.ParseDerivedCoreProperties(f)
+	case ucd.TxtPropertyAliases:
+		data, err = parser.ParsePropertyAliases(f)
 	case ucd.TxtPropertyValueAliases:
 		data, err = parser.ParsePropertyValueAliases(f)
 	case ucd.TxtPropList:
@@ -146,6 +149,19 @@ func OpenDB(appDirPath string) (*ucd.UCD, error) {
 		}
 	}
 
+	var propAliases *property.PropertyAliases
+	{
+		d, err := os.ReadFile(makeParsedDataFilePath(appDirPath, ucd.TxtPropertyAliases))
+		if err != nil {
+			return nil, err
+		}
+		propAliases = &property.PropertyAliases{}
+		err = json.Unmarshal(d, propAliases)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	var propValAliases *property.PropertyValueAliases
 	{
 		d, err := os.ReadFile(makeParsedDataFilePath(appDirPath, ucd.TxtPropertyValueAliases))
@@ -176,6 +192,7 @@ func OpenDB(appDirPath string) (*ucd.UCD, error) {
 		UnicodeData:           ud,
 		NameAliases:           nameAliases,
 		DerivedCoreProperties: derivedCoreProps,
+		PropertyAliases:       propAliases,
 		PropertyValueAliases:  propValAliases,
 		PropList:              propList,
 	}, nil

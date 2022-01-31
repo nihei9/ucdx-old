@@ -20,6 +20,7 @@ type UCD struct {
 	UnicodeData           *property.UnicodeData
 	NameAliases           *property.NameAliases
 	DerivedCoreProperties *property.DerivedCoreProperties
+	PropertyAliases       *property.PropertyAliases
 	PropertyValueAliases  *property.PropertyValueAliases
 	PropList              *property.PropList
 }

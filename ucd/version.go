@@ -8,6 +8,7 @@ const (
 	TxtUnicodeData           = "UnicodeData.txt"
 	TxtNameAliases           = "NameAliases.txt"
 	TxtDerivedCoreProperties = "DerivedCoreProperties.txt"
+	TxtPropertyAliases       = "PropertyAliases.txt"
 	TxtPropertyValueAliases  = "PropertyValueAliases.txt"
 	TxtPropList              = "PropList.txt"
 )

@@ -152,6 +152,16 @@ type DerivedCoreProperties struct {
 	Entries map[PropertyName][]*CodePointRange `json:"entries"`
 }
 
+type PropertyAlias struct {
+	Abb    PropertyName   `json:"abb"`
+	Long   PropertyName   `json:"long"`
+	Others []PropertyName `json:"others"`
+}
+
+type PropertyAliases struct {
+	Aliases []*PropertyAlias `json:"aliases"`
+}
+
 // PropertyValueAliase represents a set of aliases for a property value.
 // `Abb` and `Long` are the preferred aliases.
 type PropertyValueAliase struct {
