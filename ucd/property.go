@@ -8,12 +8,17 @@ import (
 )
 
 type PropertySet struct {
-	Properties            map[property.PropertyName]*property.Property
-	GeneralCategoryGroups []property.PropertyValueSymbol
+	CP                    rune                                             `json:"code_point"`
+	Properties            map[property.PropertyName]property.PropertyValue `json:"properties"`
+	GeneralCategoryGroups []property.PropertyValueSymbol                   `json:"general_category_group"`
 }
 
 func (s *PropertySet) Lookup(propName property.PropertyName) *property.Property {
-	return s.Properties[propName]
+	v, ok := s.Properties[propName]
+	if !ok {
+		return nil
+	}
+	return property.NewProperty(propName, v)
 }
 
 type UCD struct {
@@ -28,18 +33,19 @@ type UCD struct {
 func (u *UCD) AnalizeCodePoint(c rune) *PropertySet {
 	gc := u.lookupGeneralCategory(c)
 	return &PropertySet{
-		Properties: map[property.PropertyName]*property.Property{
-			property.PropNameName:            property.NewProperty(property.PropNameName, u.lookupName(c)),
-			property.PropNameNameAlias:       property.NewProperty(property.PropNameNameAlias, u.lookupNameAlias(c)),
-			property.PropNameGeneralCategory: property.NewProperty(property.PropNameGeneralCategory, gc),
-			property.PropNameAlphabetic:      property.NewProperty(property.PropNameAlphabetic, u.isAlphabetic(c)),
-			property.PropNameUppercase:       property.NewProperty(property.PropNameUppercase, u.isUppercase(c)),
-			property.PropNameLowercase:       property.NewProperty(property.PropNameLowercase, u.isLowercase(c)),
-			property.PropNameIDStart:         property.NewProperty(property.PropNameIDStart, u.isIDStart(c)),
-			property.PropNameIDContinue:      property.NewProperty(property.PropNameIDContinue, u.isIDContinue(c)),
-			property.PropNameXIDStart:        property.NewProperty(property.PropNameXIDStart, u.isXIDStart(c)),
-			property.PropNameXIDContinue:     property.NewProperty(property.PropNameXIDContinue, u.isXIDContinue(c)),
-			property.PropNameWhiteSpace:      property.NewProperty(property.PropNameWhiteSpace, u.isWhiteSpace(c)),
+		CP: c,
+		Properties: map[property.PropertyName]property.PropertyValue{
+			property.PropNameName:            u.lookupName(c),
+			property.PropNameNameAlias:       u.lookupNameAlias(c),
+			property.PropNameGeneralCategory: gc,
+			property.PropNameAlphabetic:      u.isAlphabetic(c),
+			property.PropNameUppercase:       u.isUppercase(c),
+			property.PropNameLowercase:       u.isLowercase(c),
+			property.PropNameIDStart:         u.isIDStart(c),
+			property.PropNameIDContinue:      u.isIDContinue(c),
+			property.PropNameXIDStart:        u.isXIDStart(c),
+			property.PropNameXIDContinue:     u.isXIDContinue(c),
+			property.PropNameWhiteSpace:      u.isWhiteSpace(c),
 		},
 		GeneralCategoryGroups: lookupGCGroups(gc),
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -15,6 +16,37 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var analyzeOutputSet = []string{
+	"table",
+	"json",
+}
+
+type analyzeFlagSet struct {
+	output *string
+}
+
+func (f *analyzeFlagSet) validate() error {
+	passed := false
+	for _, o := range analyzeOutputSet {
+		if *f.output == o {
+			passed = true
+			break
+		}
+	}
+	if !passed {
+		var b strings.Builder
+		fmt.Fprint(&b, analyzeOutputSet[0])
+		for _, o := range analyzeOutputSet[1:] {
+			fmt.Fprint(&b, ", ", o)
+		}
+		return fmt.Errorf("--output doesn't support %v, allowed values are: %v", *f.output, b.String())
+	}
+
+	return nil
+}
+
+var analyzeFlags = &analyzeFlagSet{}
+
 func init() {
 	cmd := &cobra.Command{
 		Use:   "analyze",
@@ -23,10 +55,16 @@ func init() {
 		Args:  cobra.MaximumNArgs(1),
 		RunE:  runAnalyze,
 	}
+	analyzeFlags.output = cmd.Flags().StringP("output", "o", "table", "Output format. One of: json|table")
 	rootCmd.AddCommand(cmd)
 }
 
 func runAnalyze(cmd *cobra.Command, args []string) error {
+	err := analyzeFlags.validate()
+	if err != nil {
+		return err
+	}
+
 	var u *ucd.UCD
 	{
 		homeDirPath, err := os.UserHomeDir()
@@ -48,11 +86,12 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 		src = os.Stdin
 	}
 	r := bufio.NewReader(src)
+	results := []*ucd.PropertySet{}
 	for {
 		c, _, err := r.ReadRune()
 		if err != nil {
 			if err == io.EOF {
-				return nil
+				break
 			}
 			return err
 		}
@@ -61,30 +100,48 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 		}
 
 		props := u.AnalizeCodePoint(c)
+		results = append(results, props)
+	}
 
-		fmt.Println(string(c), fmt.Sprintf("U+%X", c))
+	switch *analyzeFlags.output {
+	case "table":
+		printPropertySetAsTable(results)
+	case "json":
+		b, err := json.Marshal(results)
+		if err != nil {
+			return err
+		}
+		fmt.Println(string(b))
+	}
+
+	return nil
+}
+
+func printPropertySetAsTable(ps []*ucd.PropertySet) {
+	for _, p := range ps {
+		fmt.Println(string(p.CP), fmt.Sprintf("U+%X", p.CP))
 		var opts []string
-		if len(props.GeneralCategoryGroups) > 0 {
+		if len(p.GeneralCategoryGroups) > 0 {
 			var gs strings.Builder
-			fmt.Fprint(&gs, props.GeneralCategoryGroups[0])
-			for _, g := range props.GeneralCategoryGroups[1:] {
+			fmt.Fprint(&gs, p.GeneralCategoryGroups[0])
+			for _, g := range p.GeneralCategoryGroups[1:] {
 				fmt.Fprintf(&gs, ", %v", g)
 			}
 			opts = []string{
 				fmt.Sprintf("(%v)", gs.String()),
 			}
 		}
-		printProperty(props.Lookup(property.PropNameName))
-		printProperty(props.Lookup(property.PropNameNameAlias))
-		printProperty(props.Lookup(property.PropNameGeneralCategory), opts...)
-		printProperty(props.Lookup(property.PropNameAlphabetic))
-		printProperty(props.Lookup(property.PropNameLowercase))
-		printProperty(props.Lookup(property.PropNameUppercase))
-		printProperty(props.Lookup(property.PropNameIDStart))
-		printProperty(props.Lookup(property.PropNameIDContinue))
-		printProperty(props.Lookup(property.PropNameXIDStart))
-		printProperty(props.Lookup(property.PropNameXIDContinue))
-		printProperty(props.Lookup(property.PropNameWhiteSpace))
+		printProperty(p.Lookup(property.PropNameName))
+		printProperty(p.Lookup(property.PropNameNameAlias))
+		printProperty(p.Lookup(property.PropNameGeneralCategory), opts...)
+		printProperty(p.Lookup(property.PropNameAlphabetic))
+		printProperty(p.Lookup(property.PropNameLowercase))
+		printProperty(p.Lookup(property.PropNameUppercase))
+		printProperty(p.Lookup(property.PropNameIDStart))
+		printProperty(p.Lookup(property.PropNameIDContinue))
+		printProperty(p.Lookup(property.PropNameXIDStart))
+		printProperty(p.Lookup(property.PropNameXIDContinue))
+		printProperty(p.Lookup(property.PropNameWhiteSpace))
 	}
 }
 
