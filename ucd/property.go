@@ -28,6 +28,7 @@ type UCD struct {
 	PropertyAliases       *property.PropertyAliases
 	PropertyValueAliases  *property.PropertyValueAliases
 	PropList              *property.PropList
+	Unification           *property.Unification
 }
 
 func (u *UCD) AnalizeCodePoint(c rune) *PropertySet {

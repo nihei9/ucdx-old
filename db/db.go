@@ -47,6 +47,44 @@ func MakeDB(config *DBConfig) error {
 		}
 	}
 
+	{
+		var propAliases *property.PropertyAliases
+		{
+			b, err := ioutil.ReadFile(filepath.Join(tempDirPath, makeParsedDataFileName(ucd.TxtPropertyAliases)))
+			if err != nil {
+				return err
+			}
+			propAliases = &property.PropertyAliases{}
+			err = json.Unmarshal(b, propAliases)
+			if err != nil {
+				return err
+			}
+		}
+
+		var propValAliases *property.PropertyValueAliases
+		{
+			b, err := ioutil.ReadFile(filepath.Join(tempDirPath, makeParsedDataFileName(ucd.TxtPropertyValueAliases)))
+			if err != nil {
+				return err
+			}
+			propValAliases = &property.PropertyValueAliases{}
+			err = json.Unmarshal(b, propValAliases)
+			if err != nil {
+				return err
+			}
+		}
+
+		uni := property.NewUnification(propAliases, propValAliases)
+		b, err := json.Marshal(uni)
+		if err != nil {
+			return err
+		}
+		err = ioutil.WriteFile(filepath.Join(tempDirPath, "unification.json"), b, 0644)
+		if err != nil {
+			return err
+		}
+	}
+
 	dbDirPath := filepath.Join(config.AppDirPath, "db")
 	err = os.RemoveAll(dbDirPath)
 	if err != nil {
@@ -188,6 +226,19 @@ func OpenDB(appDirPath string) (*ucd.UCD, error) {
 		}
 	}
 
+	var unification *property.Unification
+	{
+		d, err := ioutil.ReadFile(filepath.Join(appDirPath, "db", "unification.json"))
+		if err != nil {
+			return nil, err
+		}
+		unification = &property.Unification{}
+		err = json.Unmarshal(d, unification)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &ucd.UCD{
 		UnicodeData:           ud,
 		NameAliases:           nameAliases,
@@ -195,9 +246,14 @@ func OpenDB(appDirPath string) (*ucd.UCD, error) {
 		PropertyAliases:       propAliases,
 		PropertyValueAliases:  propValAliases,
 		PropList:              propList,
+		Unification:           unification,
 	}, nil
 }
 
 func makeParsedDataFilePath(appDirPath string, srcDataFileName string) string {
-	return filepath.Join(appDirPath, "db", fmt.Sprintf("%v.json", strings.TrimSuffix(srcDataFileName, ".txt")))
+	return filepath.Join(appDirPath, "db", makeParsedDataFileName(srcDataFileName))
+}
+
+func makeParsedDataFileName(srcDataFileName string) string {
+	return fmt.Sprintf("%v.json", strings.TrimSuffix(srcDataFileName, ".txt"))
 }

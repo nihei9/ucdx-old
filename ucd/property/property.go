@@ -181,10 +181,45 @@ type DefaultValue struct {
 }
 
 type PropertyValueAliases struct {
-	Aliases       map[PropertyValueSymbol]*PropertyValueAliase `json:"aliases"`
-	DefaultValues map[PropertyName]*DefaultValue               `json:"default_values"`
+	Aliases       map[PropertyName][]*PropertyValueAliase `json:"aliases"`
+	DefaultValues map[PropertyName]*DefaultValue          `json:"default_values"`
 }
 
 type PropList struct {
 	WhiteSpace []*CodePointRange `json:"White_Space"`
+}
+
+type Unification struct {
+	PropertyNames  map[PropertyName]PropertyName      `json:"property_names"`
+	PropertyValues map[PropertyName]map[string]string `json:"property_values"`
+}
+
+func NewUnification(propAliases *PropertyAliases, propValAliases *PropertyValueAliases) *Unification {
+	names := map[PropertyName]PropertyName{}
+	for _, a := range propAliases.Aliases {
+		names[a.Abb] = a.Long
+		names[a.Long] = a.Long
+		for _, o := range a.Others {
+			names[o] = a.Long
+		}
+	}
+
+	values := map[PropertyName]map[string]string{}
+	for propName, aliases := range propValAliases.Aliases {
+		if values[propName] == nil {
+			values[propName] = map[string]string{}
+		}
+		for _, a := range aliases {
+			values[propName][a.Abb.String()] = a.Long.String()
+			values[propName][a.Long.String()] = a.Long.String()
+			for _, o := range a.Others {
+				values[propName][o.String()] = a.Long.String()
+			}
+		}
+	}
+
+	return &Unification{
+		PropertyNames:  names,
+		PropertyValues: values,
+	}
 }

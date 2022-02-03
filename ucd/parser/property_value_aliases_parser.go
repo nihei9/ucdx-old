@@ -8,7 +8,7 @@ import (
 
 // ParsePropertyValueAliases parses the PropertyValueAliases.txt.
 func ParsePropertyValueAliases(r io.Reader) (*property.PropertyValueAliases, error) {
-	aliases := map[property.PropertyValueSymbol]*property.PropertyValueAliase{}
+	aliases := map[property.PropertyName][]*property.PropertyValueAliase{}
 	defaultValues := map[property.PropertyName]*property.DefaultValue{}
 
 	p := newParser(r)
@@ -23,11 +23,12 @@ func ParsePropertyValueAliases(r io.Reader) (*property.PropertyValueAliases, err
 					others[i] = f.normalizedSymbol()
 				}
 			}
-			aliases[p.fields[0].normalizedSymbol()] = &property.PropertyValueAliase{
+			propName, _ := p.fields[0].name()
+			aliases[propName] = append(aliases[propName], &property.PropertyValueAliase{
 				Abb:    p.fields[1].normalizedSymbol(),
 				Long:   p.fields[2].normalizedSymbol(),
 				Others: others,
-			}
+			})
 		}
 
 		// The format of the default values is explained in section 4.2.10 @missing Conventions in [UAX44].
