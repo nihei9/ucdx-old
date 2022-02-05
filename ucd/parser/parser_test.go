@@ -205,6 +205,60 @@ func TestField_codePointRange(t *testing.T) {
 	}
 }
 
+func TestField_rangeStartAndLast(t *testing.T) {
+	tests := []struct {
+		field   field
+		isStart bool
+		isLast  bool
+	}{
+		{
+			field:   "<Foo, First>",
+			isStart: true,
+		},
+		{
+			field:  "<Foo, Last>",
+			isLast: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.field.String(), func(t *testing.T) {
+			isStart := tt.field.rangeStart()
+			if isStart != tt.isStart {
+				t.Fatalf("unexpected result: want: %v, got: %v", tt.isStart, isStart)
+			}
+
+			isLast := tt.field.rangeLast()
+			if isLast != tt.isLast {
+				t.Fatalf("unexpected result: want: %v, got: %v", tt.isLast, isLast)
+			}
+		})
+	}
+}
+
+func TestField_name(t *testing.T) {
+	tests := []struct {
+		field field
+		name  property.PropertyName
+	}{
+		{
+			field: "Foo Bar",
+			name:  "Foo Bar",
+		},
+		{
+			field: "<Foo>",
+			name:  "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.field.String(), func(t *testing.T) {
+			name, _ := tt.field.name()
+			if name != tt.name {
+				t.Fatalf("unexpected name: want: %v, got: %v", tt.name, name)
+			}
+		})
+	}
+}
+
 func TestField_normalizedSymbol(t *testing.T) {
 	tests := []struct {
 		field field

@@ -125,6 +125,28 @@ func decodeHexToRune(hexCodePoint string) (rune, error) {
 	return rune(n), nil
 }
 
+// rangeStart returns true when a field indicates a start of a code point range.
+//
+// See section 4.2.3 Code Point Ranges in [UAX44] for more details on the code point ranges.
+func (f field) rangeStart() bool {
+	s := string(f)
+	if strings.HasPrefix(s, "<") && strings.HasSuffix(s, ", First>") {
+		return true
+	}
+	return false
+}
+
+// rangeLast returns true when a field indicates a last of a code point range.
+//
+// See section 4.2.3 Code Point Ranges in [UAX44] for more details on the code point ranges.
+func (f field) rangeLast() bool {
+	s := string(f)
+	if strings.HasPrefix(s, "<") && strings.HasSuffix(s, ", Last>") {
+		return true
+	}
+	return false
+}
+
 // name returns a value parsed as a `Name` property.
 //
 // See section 4.8 Name in [Unicode].
